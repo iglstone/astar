@@ -15,16 +15,26 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     xstep = (float)(rect.width())/ (this->XRows -1);
     ystep = (float)(rect.height())/ (this->YCols -1);
 
-    forward = qrand() % 5;
-
+    //simulate a robot move forward
+    //forward = qrand() % 5;
     rb.index = 12;
-    rb.forward = 1;
+    rb.forward = ForWord_Front;
 
-    //test astar algrithm
+    this->testAStar();
+}
+
+plotter::~plotter(){
+    m_timer.stop();
+}
+
+//test astar algrithm
+void plotter::testAStar()
+{
     astar = new AStar(this->getXRows(), this->getYCols());
     astar->Four_Neighbor = false;//if true, four neighbors search
     astar->startAStar(1 ,1 ,25 ,29);
 
+    //find path
     std::vector<std::pair<float, float>> path = astar->path;
     int count = path.size();
     for (int i = count -1 ; i >= 0; i--)
@@ -40,10 +50,6 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     }
 }
 
-plotter::~plotter(){
-    m_timer.stop();
-}
-
 void plotter::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -57,26 +63,26 @@ void plotter::drawGrid(QPainter *painter)
 {
     painter->setPen(Qt::black);
 
-//    //if need dynamic , which will uncomment lines belows
-//    rect = QRect(margin, margin, width()-2*margin, height()-2*margin );
-//    xstep = (float)(rect.width())/ (this->XRows -1);
-//    ystep = (float)(rect.height())/ (this->YCols -1);
+    //if need dynamic , which will uncomment lines belows
+    rect = QRect(margin, margin, width()-2*margin, height()-2*margin );
+    xstep = (float)(rect.width())/ (this->XRows -1);
+    ystep = (float)(rect.height())/ (this->YCols -1);
 
-    //draw x line
+    /* draw x line */
     for(int i=0; i<this->XRows; i++)
     {
         int x = margin + i*xstep;
         painter->drawLine(x,rect.top(),x,rect.bottom());
     }
 
-    //draw y line
+    /* draw y line */
     for(int j=0; j<this->YCols; j++)
     {
         int y = margin+(j*ystep);
         painter->drawLine(margin,y,rect.right(),y);
     }
 
-    //set robot position
+    /* show path */
     painter->setBrush(Qt::red);
     for (int i = 0; i < posArray.count(); i++)
     {
@@ -86,6 +92,7 @@ void plotter::drawGrid(QPainter *painter)
         painter->drawEllipse(x, y, 10,10);
     }
 
+    //show the blink robot
     int nIndex = (m_nStep) % 2;
     if(nIndex){
         painter->setBrush(Qt::blue);
@@ -94,7 +101,7 @@ void plotter::drawGrid(QPainter *painter)
 
     }
 
-    //show obstacles
+    /* show obstacles */
     painter->setBrush(Qt::gray);
     int x_o = 10;
     for(int y_o = 5; y_o < 30 ; y_o ++){
@@ -103,8 +110,9 @@ void plotter::drawGrid(QPainter *painter)
         painter->drawEllipse(xx, yy, 10,10);
     }
 
-    //examine map bundury
+    /* show the robot */
     painter->setBrush(Qt::red);
+    //examine map bundury
     bool bundery = false;
     posXY pos = this->indexToPos(rb.index);
     if(pos.x < 0){
@@ -135,7 +143,7 @@ void plotter::drawGrid(QPainter *painter)
         return;
     }
 
-    //move the robot
+    /* move the robot */
     switch (rb.forward) {
         case ForWord_Front:
             rb.index++;

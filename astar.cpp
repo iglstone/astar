@@ -16,7 +16,7 @@ AStar::AStar(int nx, int ny){
 
     unknown_ = true;
     lethal_cost_ = 253;
-    neutral_cost_ = 50;
+    neutral_cost_ = 50;//经验值
 
     potential_array_ = new float[nx * ny];
 
