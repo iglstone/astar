@@ -27,6 +27,7 @@ struct robot{
     int forward; //朝向
     int index_start;
     int index_end;
+    int robot_step;
     QVector <posXY> path; //astar planner path
 };
 
@@ -45,8 +46,6 @@ public:
     posXY indexToPos(int index);
     int posToIndex(posXY pos);
 
-    void drawCircle(int index);
-
     int robot_step;
 
 private:
@@ -54,8 +53,8 @@ private:
     void timerEvent(QTimerEvent *event);
     void drawGrid(QPainter *);
     int xyToIndex(int x, int y);
-    void initRobotStates();
-    QVector <posXY> astarPathToMapPath(robot rob, AStar *astar);
+    void initRobotsStates();
+    QVector <posXY> astarPathToMapPath(robot *rob, AStar *astar);
 
     int XRows;
     int YCols;
@@ -63,14 +62,14 @@ private:
     int forward;
 
     robot rb ;
-    robot rb_run;
 
     //global
     QRect rect;
     int margin;
     float xstep;
     float ystep;
-//    QVector <posXY> posArray;
+    QVector <robot *> robotsArray;
+//    std::vector <robot *> robotsArray;
 
     AStar *astar;
     QPen pen;

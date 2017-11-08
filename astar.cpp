@@ -118,6 +118,7 @@ float AStar::calculatePotential(float* potential, unsigned char cost, int next_i
 bool AStar::getPath(float* potential, double start_x, double start_y, double end_x, double end_y,
                     std::vector< std::pair<float, float> >& path_)
 {
+    path_.clear();
     std::pair<float, float> current;
     current.first = end_x;
     current.second = end_y;

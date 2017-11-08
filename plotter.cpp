@@ -16,7 +16,6 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     ystep = (float)(rect.height())/ (this->YCols -1);
 
     //simulate a robot move forward
-    //forward = qrand() % 5;
     rb.index_now = 12;
     rb.forward = ForWord_Front;
 
@@ -27,7 +26,7 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
 
     robot_step = 0;
 
-    this->initRobotStates();
+    this->initRobotsStates();
 }
 
 plotter::~plotter(){
@@ -35,20 +34,37 @@ plotter::~plotter(){
 }
 
 //test astar algrithm
-void plotter::initRobotStates()
+void plotter::initRobotsStates()
 {
     astar = new AStar(this->getXRows(), this->getYCols());
     astar->Four_Neighbor = false;//if true, four neighbors search
+
+    robot *rb_run = new robot;
     int ind_start = this->xyToIndex(1,1);
     int ind_end = this->xyToIndex(25,29);
-    rb_run.index_start = ind_start;
-    rb_run.index_end = ind_end;
-    rb_run.path = this->astarPathToMapPath(rb_run,astar);
+    rb_run->index_start = ind_start;
+    rb_run->index_end = ind_end;
+    rb_run->robot_step = 0;
+    QVector <posXY> paths = this->astarPathToMapPath(rb_run,astar);
+    //rb_run.path = paths;
+    rb_run->path.swap(paths);
+    robotsArray.append(rb_run);
+
+    robot *rb_run2 = new robot;
+    int ind_start2 = this->xyToIndex(1,15);
+    int ind_end2 = this->xyToIndex(40,35);
+    rb_run2->index_start = ind_start2;
+    rb_run2->index_end = ind_end2;
+    rb_run2->robot_step = 0;
+    QVector <posXY> paths2 = this->astarPathToMapPath(rb_run2,astar);
+    rb_run2->path.swap(paths2);
+    robotsArray.append(rb_run2);
+
 }
 
-QVector <posXY> plotter::astarPathToMapPath(robot rob, AStar *astar){
-    posXY p0 = this->indexToPos(rob.index_start);
-    posXY p1 = this->indexToPos(rob.index_end);
+QVector <posXY> plotter::astarPathToMapPath(robot *rob, AStar *astar){
+    posXY p0 = this->indexToPos(rob->index_start);
+    posXY p1 = this->indexToPos(rob->index_end);
     astar->startAStar(p0.x ,p0.y ,p1.x ,p1.y);
 
     //find path
@@ -101,46 +117,49 @@ void plotter::drawGrid(QPainter *painter)
         painter->drawLine(margin,y,rect.right(),y);
     }
 
-    /* show path */
-    painter->setBrush(Qt::red);
-    painter->setPen(pen);
-    QVector <posXY> posArray = rb_run.path;
-    for (int i = 0; i < posArray.count() -1; i++)
-    {
-        posXY pos = posArray[i];
-        posXY pos1 = posArray[i+1];
-//        float x = 30 + pos.x * xstep ;
-//        float y= 30 + pos.y * ystep ;
-//        painter->drawEllipse(x, y, 10,10);
-        float x0 = 35 + pos.x * xstep ;
-        float y0= 35 + pos.y * ystep ;
-        float x1 = 35 + pos1.x * xstep ;
-        float y1= 35 + pos1.y * ystep ;
-        painter->drawLine(x0, y0, x1, y1);
-    }
+    /* show astar path */
+    for(int i = 0; i < robotsArray.count(); i++){
+        robot *robo = robotsArray[i];
 
-    if(robot_step < posArray.count()){
-        // std::cout << "robot_step :" << robot_step << std::endl;
-        posXY pos = posArray[robot_step];
-        painter->setBrush(Qt::blue);
-        painter->setPen(Qt::black);
-        float x0 = 30 + pos.x * xstep ;
-        float y0= 30 + pos.y * ystep ;
-        painter->drawEllipse(x0, y0, 10,10);
-        if(robot_step == posArray.count() -1){
+        painter->setBrush(Qt::red);
+        painter->setPen(pen);
 
-        }else{
-            robot_step ++;
+        QVector <posXY> posArray = robo->path;
+        for (int i = 0; i < posArray.count() -1; i++)
+        {
+            posXY pos = posArray[i];
+            posXY pos1 = posArray[i+1];
+            float x0 = 35 + pos.x * xstep ;
+            float y0= 35 + pos.y * ystep ;
+            float x1 = 35 + pos1.x * xstep ;
+            float y1= 35 + pos1.y * ystep ;
+            painter->drawLine(x0, y0, x1, y1);
+        }
+
+        /* show the robot move */
+        if(robo->robot_step < posArray.count()){
+            std::cout << "robot_step :" << robo->robot_step << std::endl;
+            posXY pos = posArray[robo->robot_step];
+            painter->setBrush(Qt::blue);
+            painter->setPen(Qt::black);
+            float x0 = 30 + pos.x * xstep ;
+            float y0= 30 + pos.y * ystep ;
+            painter->drawEllipse(x0, y0, 10,10);
+            if(robo->robot_step == posArray.count() -1){
+
+            }else{
+                std::cout << "xxxx :" << robo->robot_step << std::endl;
+                robo->robot_step ++;
+            }
         }
     }
 
-    //show the blink robot
+    //show the blink robot on 0.0
     int nIndex = (m_nStep) % 2;
     if(nIndex){
         painter->setBrush(Qt::blue);
         painter->drawEllipse(30, 30, 10,10);
     }else{
-
     }
 
     /* show obstacles */
@@ -152,6 +171,12 @@ void plotter::drawGrid(QPainter *painter)
         int yy = 30 + y_o * ystep ;
         painter->drawEllipse(xx, yy, 10,10);
     }
+
+
+
+
+
+
 
     /* show the robot */
     painter->setBrush(Qt::red);
@@ -206,11 +231,8 @@ void plotter::drawGrid(QPainter *painter)
         default:
             break;
     }
-}
 
-void plotter::drawCircle(int index){
-    posXY pos = this->indexToPos(index);
-    //posArray.append(pos);
+
 }
 
 void plotter::timerEvent(QTimerEvent *event)

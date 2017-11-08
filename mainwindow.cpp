@@ -34,13 +34,14 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked(){
     //std::cout << "xxx" << std::endl;
     //printf("xxx ooo");
-//    this->plot->drawCircle(num);
-//    num++;
-    this->plot->robot_step = 0;
+
+    //    this->plot->drawCircle(num);
+    //    num++;
+
+    //this->plot->robot_step = 0;//sth wrong here
 }
 
 void MainWindow::on_setARobot_clicked()
 {
-    this->plot->drawCircle( 5 );
-    this->plot->drawCircle( 7 );
+
 }
