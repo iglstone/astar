@@ -39,27 +39,30 @@ void plotter::initRobotsStates()
     astar = new AStar(this->getXRows(), this->getYCols());
     astar->Four_Neighbor = false;//if true, four neighbors search
 
-    robot *rb_run = new robot;
-    int ind_start = this->xyToIndex(1,1);
-    int ind_end = this->xyToIndex(25,29);
-    rb_run->index_start = ind_start;
-    rb_run->index_end = ind_end;
-    rb_run->robot_step = 0;
-    QVector <posXY> paths = this->astarPathToMapPath(rb_run,astar);
+    robot *ro = this->initARobot(1,1,25,29);
+    robotsArray.append(ro);
+
+    robot *ro2 = this->initARobot(1,15,40,35);
+    robotsArray.append(ro2);
+
+    robot *ro3 = this->initARobot(20,15,48,35);
+    robotsArray.append(ro3);
+
+    robot *ro4 = this->initARobot(18,18,30,35);
+    robotsArray.append(ro4);
+}
+
+robot * plotter::initARobot(int start_x, int start_y, int end_x, int end_y){
+    robot *r = new robot;//if use ptr, must new one
+    int ind_start = this->xyToIndex(start_x,start_y);
+    int ind_end = this->xyToIndex(end_x,end_y);
+    r->index_start = ind_start;
+    r->index_end = ind_end;
+    r->robot_step = 0;
+    QVector <posXY> paths = this->astarPathToMapPath(r,astar);
     //rb_run.path = paths;
-    rb_run->path.swap(paths);
-    robotsArray.append(rb_run);
-
-    robot *rb_run2 = new robot;
-    int ind_start2 = this->xyToIndex(1,15);
-    int ind_end2 = this->xyToIndex(40,35);
-    rb_run2->index_start = ind_start2;
-    rb_run2->index_end = ind_end2;
-    rb_run2->robot_step = 0;
-    QVector <posXY> paths2 = this->astarPathToMapPath(rb_run2,astar);
-    rb_run2->path.swap(paths2);
-    robotsArray.append(rb_run2);
-
+    r->path.swap(paths);
+    return r;
 }
 
 QVector <posXY> plotter::astarPathToMapPath(robot *rob, AStar *astar){
@@ -146,9 +149,8 @@ void plotter::drawGrid(QPainter *painter)
             float y0= 30 + pos.y * ystep ;
             painter->drawEllipse(x0, y0, 10,10);
             if(robo->robot_step == posArray.count() -1){
-
+                robo->robot_step = 0;
             }else{
-                std::cout << "xxxx :" << robo->robot_step << std::endl;
                 robo->robot_step ++;
             }
         }

@@ -55,6 +55,7 @@ private:
     int xyToIndex(int x, int y);
     void initRobotsStates();
     QVector <posXY> astarPathToMapPath(robot *rob, AStar *astar);
+    robot *initARobot(int start_x, int start_y, int end_x, int end_y);
 
     int XRows;
     int YCols;
