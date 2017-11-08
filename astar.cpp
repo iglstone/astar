@@ -28,16 +28,58 @@ AStar::AStar(int nx, int ny){
 
     //set obstacles
     int x = 10;
-    for(int y = 5; y < 30 ; y ++){
+    for(int y = 5; y < 30 ; y ++)
+    {
         int index = this->getIndex(x,y);
+        obstacleIndexs.push_back(index);
+    }
+    this->setIndexsObstacles(obstacleIndexs);
+}
+
+void AStar::setIndexsObstacles(std::vector<int> indexs)
+{
+    for(unsigned int i = 0; i < indexs.size(); i++){
+        int index = indexs.at(i);
         costmap_[index] = costmap::INSCRIBED_INFLATED_OBSTACLE;
+    }
+}
+
+void AStar::setIndexObstacle(int index)
+{
+    if (index >= nx_ * ny_ || index < 0 ){
+        printf("index out of the bundrary! error!\n");
+    }else{
+        costmap_[index] = costmap::INSCRIBED_INFLATED_OBSTACLE;
+    }
+}
+
+bool AStar::isIndexObstacle(int index)
+{
+    if (index >= nx_ * ny_ || index < 0 ){
+        std::cout << "index out of the bundrary! error!\n" << std::endl;;
+        return true;
+    }else{
+        int cost = costmap_[index] ;
+        //std::cout << "costs :" << cost << " index :" << index << std::endl;
+        if(cost >= costmap::INSCRIBED_INFLATED_OBSTACLE){
+            return true;
+        }
+        return false;
+    }
+}
+
+void AStar::setIndexNormal(int index){
+    if (index >= nx_ * ny_ || index < 0 ){
+        printf("index out of the bundrary! error!\n");
+    }else{
+        costmap_[index] = costmap::NORMAL_SPACE;
     }
 }
 
 void AStar::startAStar(int start_x, int start_y, int goal_x, int goal_y){
     this->outlineMap(costmap_, costmap::LETHAL_OBSTACLE);
-    bool found_legal = this->calculatePotentials(costmap_, start_x, start_y, goal_x, goal_y,
-                                                     nx_ * ny_ * 2, potential_array_);
+    bool found_legal = this->calculatePotentials(costmap_, start_x, start_y,
+                                                 goal_x, goal_y, nx_ * ny_ * 2, potential_array_);
     if (found_legal){
         std::cout << "found the path" << std::endl;
         this->getPath(potential_array_, start_x, start_y, goal_x, goal_y, path);
@@ -184,4 +226,18 @@ void AStar::outlineMap(unsigned char* costarr, unsigned char value) {
 
 int AStar::getIndex(int x, int y) {
     return x + y * nx_;
+}
+
+posXY AStar::indexToPos(int index){
+    posXY pos ;
+    if (index >= nx_ * ny_ || index < 0 ){
+        printf("index out of the bundrary! sth error!\n");
+    }else{
+        int x = index % nx_;
+        int y = index / nx_;
+
+        pos.x = x;
+        pos.y = y;
+    }
+    return pos;
 }

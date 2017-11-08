@@ -7,6 +7,7 @@
 #include <QBasicTimer>
 #include <QVector>
 #include <astar.h>
+#include <QString>
 
 enum ForWord{
     ForWord_Self    = 0,
@@ -17,14 +18,11 @@ enum ForWord{
     ForWord_Unknow  = 5
 };
 
-struct posXY{
-    int x;
-    int y;
-};
-
 struct robot{
     int index_now;//now position
-    int forward; //朝向
+    int forward; //朝向, now use now
+    QString name;
+    int robot_id;
     int index_start;
     int index_end;
     int robot_step;
@@ -55,7 +53,7 @@ private:
     int xyToIndex(int x, int y);
     void initRobotsStates();
     QVector <posXY> astarPathToMapPath(robot *rob, AStar *astar);
-    robot *initARobot(int start_x, int start_y, int end_x, int end_y);
+    robot *initARobot(int start_x, int start_y, int end_x, int end_y, QString name, int id);
 
     int XRows;
     int YCols;
