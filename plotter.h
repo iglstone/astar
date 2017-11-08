@@ -23,9 +23,11 @@ struct posXY{
 };
 
 struct robot{
-    int index;
-    int forward;
-    QVector <posXY> path; //will not use first
+    int index_now;//now position
+    int forward; //朝向
+    int index_start;
+    int index_end;
+    QVector <posXY> path; //astar planner path
 };
 
 class plotter : public QWidget
@@ -45,12 +47,15 @@ public:
 
     void drawCircle(int index);
 
+    int robot_step;
+
 private:
     void paintEvent(QPaintEvent *event);
     void timerEvent(QTimerEvent *event);
     void drawGrid(QPainter *);
     int xyToIndex(int x, int y);
-    void testAStar();
+    void initRobotStates();
+    QVector <posXY> astarPathToMapPath(robot rob, AStar *astar);
 
     int XRows;
     int YCols;
@@ -58,15 +63,17 @@ private:
     int forward;
 
     robot rb ;
+    robot rb_run;
 
     //global
     QRect rect;
     int margin;
     float xstep;
     float ystep;
-    QVector <posXY> posArray;
+//    QVector <posXY> posArray;
 
     AStar *astar;
+    QPen pen;
 
 private:
     QBasicTimer m_timer;

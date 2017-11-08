@@ -17,10 +17,17 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
 
     //simulate a robot move forward
     //forward = qrand() % 5;
-    rb.index = 12;
+    rb.index_now = 12;
     rb.forward = ForWord_Front;
 
-    this->testAStar();
+    //path pen style
+    pen.setStyle(Qt::DotLine);
+    pen.setWidth(3);
+    pen.setBrush(Qt::red);
+
+    robot_step = 0;
+
+    this->initRobotStates();
 }
 
 plotter::~plotter(){
@@ -28,13 +35,24 @@ plotter::~plotter(){
 }
 
 //test astar algrithm
-void plotter::testAStar()
+void plotter::initRobotStates()
 {
     astar = new AStar(this->getXRows(), this->getYCols());
     astar->Four_Neighbor = false;//if true, four neighbors search
-    astar->startAStar(1 ,1 ,25 ,29);
+    int ind_start = this->xyToIndex(1,1);
+    int ind_end = this->xyToIndex(25,29);
+    rb_run.index_start = ind_start;
+    rb_run.index_end = ind_end;
+    rb_run.path = this->astarPathToMapPath(rb_run,astar);
+}
+
+QVector <posXY> plotter::astarPathToMapPath(robot rob, AStar *astar){
+    posXY p0 = this->indexToPos(rob.index_start);
+    posXY p1 = this->indexToPos(rob.index_end);
+    astar->startAStar(p0.x ,p0.y ,p1.x ,p1.y);
 
     //find path
+    QVector <posXY> posArray;
     std::vector<std::pair<float, float>> path = astar->path;
     int count = path.size();
     for (int i = count -1 ; i >= 0; i--)
@@ -48,6 +66,7 @@ void plotter::testAStar()
         pos.y = y ;
         posArray.append(pos) ;
     }
+    return posArray;
 }
 
 void plotter::paintEvent(QPaintEvent *event)
@@ -84,12 +103,35 @@ void plotter::drawGrid(QPainter *painter)
 
     /* show path */
     painter->setBrush(Qt::red);
-    for (int i = 0; i < posArray.count(); i++)
+    painter->setPen(pen);
+    QVector <posXY> posArray = rb_run.path;
+    for (int i = 0; i < posArray.count() -1; i++)
     {
         posXY pos = posArray[i];
-        float x = 30 + pos.x * xstep ;
-        float y = 30 + pos.y * ystep ;
-        painter->drawEllipse(x, y, 10,10);
+        posXY pos1 = posArray[i+1];
+//        float x = 30 + pos.x * xstep ;
+//        float y= 30 + pos.y * ystep ;
+//        painter->drawEllipse(x, y, 10,10);
+        float x0 = 35 + pos.x * xstep ;
+        float y0= 35 + pos.y * ystep ;
+        float x1 = 35 + pos1.x * xstep ;
+        float y1= 35 + pos1.y * ystep ;
+        painter->drawLine(x0, y0, x1, y1);
+    }
+
+    if(robot_step < posArray.count()){
+        // std::cout << "robot_step :" << robot_step << std::endl;
+        posXY pos = posArray[robot_step];
+        painter->setBrush(Qt::blue);
+        painter->setPen(Qt::black);
+        float x0 = 30 + pos.x * xstep ;
+        float y0= 30 + pos.y * ystep ;
+        painter->drawEllipse(x0, y0, 10,10);
+        if(robot_step == posArray.count() -1){
+
+        }else{
+            robot_step ++;
+        }
     }
 
     //show the blink robot
@@ -103,6 +145,7 @@ void plotter::drawGrid(QPainter *painter)
 
     /* show obstacles */
     painter->setBrush(Qt::gray);
+    painter->setPen(Qt::black);
     int x_o = 10;
     for(int y_o = 5; y_o < 30 ; y_o ++){
         int xx = 30 + x_o * xstep ;
@@ -114,7 +157,7 @@ void plotter::drawGrid(QPainter *painter)
     painter->setBrush(Qt::red);
     //examine map bundury
     bool bundery = false;
-    posXY pos = this->indexToPos(rb.index);
+    posXY pos = this->indexToPos(rb.index_now);
     if(pos.x < 0){
         pos.x = 0;
         bundery = true;
@@ -133,7 +176,7 @@ void plotter::drawGrid(QPainter *painter)
     }
 
     int index = this->posToIndex(pos);
-    rb.index = index ;
+    rb.index_now = index ;
     int x = 30 + pos.x * xstep ;
     int y = 30 + pos.y * ystep ;
 
@@ -146,16 +189,16 @@ void plotter::drawGrid(QPainter *painter)
     /* move the robot */
     switch (rb.forward) {
         case ForWord_Front:
-            rb.index++;
+            rb.index_now++;
             break;
         case ForWord_Back:
-            rb.index--;
+            rb.index_now--;
             break;
         case ForWord_Down:
-            rb.index += this->getXRows();
+            rb.index_now += this->getXRows();
             break;
         case ForWord_Up:
-            rb.index -= this->getXRows();
+            rb.index_now -= this->getXRows();
             break;
         case ForWord_Self:
             std::cout << " get the goal" << std::endl;
@@ -167,7 +210,7 @@ void plotter::drawGrid(QPainter *painter)
 
 void plotter::drawCircle(int index){
     posXY pos = this->indexToPos(index);
-    posArray.append(pos);
+    //posArray.append(pos);
 }
 
 void plotter::timerEvent(QTimerEvent *event)
@@ -196,7 +239,7 @@ posXY plotter::indexToPos(int index){
         pos.x = x;
         pos.y = y;
     }
-    std::cout << "pos x:" << pos.x << "  pos y:" << pos.y <<std::endl;
+    //std::cout << "pos x:" << pos.x << "  pos y:" << pos.y <<std::endl;
     return pos;
 }
 

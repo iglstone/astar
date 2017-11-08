@@ -10,17 +10,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QHBoxLayout *topLayout = new QHBoxLayout;
-    QPushButton *btn_ok = new QPushButton(QWidget::tr("OK"), this);
-    connect(btn_ok,SIGNAL(clicked()),this,SLOT(on_pushButton_clicked()));
-
     this->plot = new plotter;
     this->plot->resize(500, 400);
 
-    topLayout->addWidget(this->plot);
-    topLayout->addWidget(btn_ok);
+//    QHBoxLayout *topLayout = new QHBoxLayout;
+//    QPushButton *btn_ok = new QPushButton(QWidget::tr("OK"), this);
+//    connect(btn_ok,SIGNAL(clicked()),this,SLOT(on_pushButton_clicked()));
+//    topLayout->addWidget(this->plot);
+//    topLayout->addWidget(btn_ok);
+//    this->setLayout(topLayout);
 
-    this->setLayout(topLayout);
     this->resize(1000, 600);
 
     this->setCentralWidget(this->plot);
@@ -35,8 +34,9 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked(){
     //std::cout << "xxx" << std::endl;
     //printf("xxx ooo");
-    this->plot->drawCircle(num);
-    num++;
+//    this->plot->drawCircle(num);
+//    num++;
+    this->plot->robot_step = 0;
 }
 
 void MainWindow::on_setARobot_clicked()
