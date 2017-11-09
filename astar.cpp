@@ -30,6 +30,9 @@ AStar::AStar(int nx, int ny){
     int x = 10;
     for(int y = 5; y < 30 ; y ++)
     {
+        if(y == 10 || y == 16 || y == 24){
+            continue;
+        }
         int index = this->getIndex(x,y);
         obstacleIndexs.push_back(index);
     }

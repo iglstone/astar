@@ -18,6 +18,15 @@ enum ForWord{
     ForWord_Unknow  = 5
 };
 
+enum ROBOT{
+    ROBOT_black    = 0,
+    ROBOT_yellow   = 1,
+    ROBOT_gray     = 2,
+    ROBOT_green    = 3,
+    ROBOT_red      = 4,
+    ROBOT_blue     = 5
+};
+
 struct robot{
     int index_now;//now position
     int forward; //朝向, now use now

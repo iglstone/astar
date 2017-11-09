@@ -1,6 +1,8 @@
 #include "plotter.h"
 #include <iostream>
 #include <QtGlobal>
+#include <QDebug>
+#include <QTime>
 
 plotter::plotter(QWidget *parent) : QWidget(parent)
 {
@@ -37,23 +39,24 @@ plotter::~plotter(){
 void plotter::initRobotsStates()
 {
     astar = new AStar(this->getXRows(), this->getYCols());
-    astar->Four_Neighbor = true;//if true, four neighbors search
+    astar->Four_Neighbor = false;//if true, four neighbors search
 
-    robot *ro = this->initARobot(1,1,25,29, QString("ro"), 1);
+    //move sequence: gray, yellow, green, red, blue
+    robot *ro = this->initARobot(1,1,25,29, QString("ro"), ROBOT_gray);
     robotsArray.append(ro);
 
-    robot *ro2 = this->initARobot(1,15,25,17, QString("ro2"), 2);
+    robot *ro2 = this->initARobot(3,15,25,17, QString("ro2"), ROBOT_yellow);
     robotsArray.append(ro2);
 
-    robot *ro3 = this->initARobot(20,15,48,36, QString("ro3"), 3);
+    robot *ro3 = this->initARobot(20,15,48,36, QString("ro3"), ROBOT_green);
     robotsArray.append(ro3);
 
-    //ro4 is before ro5
-    robot *ro4 = this->initARobot(25,30,31,30, QString("ro4"), 4);
+    robot *ro4 = this->initARobot(25,30,31,30, QString("ro4"), ROBOT_red);
     robotsArray.append(ro4);
 
-    robot *ro5 = this->initARobot(28,28,28,32, QString("ro5"), 5);
+    robot *ro5 = this->initARobot(28,28,28,32, QString("ro5"), ROBOT_blue);
     robotsArray.append(ro5);
+
 }
 
 robot * plotter::initARobot(int start_x, int start_y, int end_x, int end_y, QString name, int id){
@@ -74,18 +77,26 @@ robot * plotter::initARobot(int start_x, int start_y, int end_x, int end_y, QStr
 QVector <posXY> plotter::astarPathToMapPath(robot *rob, AStar *astar){
     posXY p0 = this->indexToPos(rob->index_start);
     posXY p1 = this->indexToPos(rob->index_end);
+
+    QTime time;
+    time.start();
     astar->startAStar(p0.x ,p0.y ,p1.x ,p1.y);
+    qDebug()<<"astar :"<<time.elapsed()<<"ms";
 
     //find path
     QVector <posXY> posArray;
+    QTime time2;
+    time2.start();
     std::vector<std::pair<float, float>> path = astar->path;
+    qDebug()<<"find path :"<<time2.elapsed()<<"ms";
+
     int count = path.size();
     for (int i = count -1 ; i >= 0; i--)
     {
         std::pair<float, float> pa = path[i];
         int x = pa.first ;
         int y = pa.second ;
-        std::cout << "path x:" << x << "  y:" << y << std::endl ;
+        //std::cout << "path x:" << x << "  y:" << y << std::endl ;
         posXY pos ;
         pos.x = x ;
         pos.y = y ;
@@ -150,19 +161,19 @@ void plotter::drawGrid(QPainter *painter)
             //std::cout << "robot_step :" << robo->robot_step << std::endl;
             posXY pos = posArray[robo->robot_step];
             switch (robo->robot_id) {
-            case 5:
+            case ROBOT_blue:
                 painter->setBrush(Qt::blue);
                 break;
-            case 4:
+            case ROBOT_red:
                 painter->setBrush(Qt::red);
                 break;
-            case 3:
+            case ROBOT_green:
                 painter->setBrush(Qt::green);
                 break;
-            case 2:
+            case ROBOT_gray:
                 painter->setBrush(Qt::gray);
                 break;
-            case 1:
+            case ROBOT_yellow:
                 painter->setBrush(Qt::yellow);
                 break;
             default:
@@ -175,7 +186,7 @@ void plotter::drawGrid(QPainter *painter)
             painter->drawEllipse(x0, y0, 10,10);
 
 
-            /*******add now********/
+            /*******add cross planner********/
             int ind = this->posToIndex(pos);
             robo->index_now = ind;
             //if next one is the final, stop; else point to the next one
@@ -187,9 +198,10 @@ void plotter::drawGrid(QPainter *painter)
             if(robo->robot_step == posArray.count() -1){ //means stop
                 // circle from the start
                 robo->robot_step = 0;
-            }else{ //means start to move
+            }else{
+                //means start to move
                 if(astar->isIndexObstacle(ind_next)){
-
+                    //do nothing
                 }else{
                     robo->robot_step ++;
                 }
@@ -219,10 +231,7 @@ void plotter::drawGrid(QPainter *painter)
     }
 
 
-
-
-
-    /* show the robot */
+    /* show the right forward blink robot */
     painter->setBrush(Qt::red);
     //examine map bundury
     bool bundery = false;
@@ -305,7 +314,7 @@ posXY plotter::indexToPos(int index){
         pos.x = x;
         pos.y = y;
     }
-    //std::cout << "pos x:" << pos.x << "  pos y:" << pos.y <<std::endl;
+
     return pos;
 }
 
