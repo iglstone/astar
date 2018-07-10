@@ -50,7 +50,7 @@ void AStar::setIndexsObstacles(std::vector<int> indexs)
 void AStar::setIndexObstacle(int index)
 {
     if (index >= nx_ * ny_ || index < 0 ){
-        printf("index out of the bundrary! error!\n");
+        std::cout << "index out of the bundrary! error!\n" << std::endl;
     }else{
         costmap_[index] = costmap::INSCRIBED_INFLATED_OBSTACLE;
     }
@@ -73,7 +73,7 @@ bool AStar::isIndexObstacle(int index)
 
 void AStar::setIndexNormal(int index){
     if (index >= nx_ * ny_ || index < 0 ){
-        printf("index out of the bundrary! error!\n");
+        std::cout << "index out of the bundrary! error!\n" << std::endl;
     }else{
         costmap_[index] = costmap::NORMAL_SPACE;
     }
@@ -234,7 +234,7 @@ int AStar::getIndex(int x, int y) {
 posXY AStar::indexToPos(int index){
     posXY pos ;
     if (index >= nx_ * ny_ || index < 0 ){
-        printf("index out of the bundrary! sth error!\n");
+        std::cout << "index out of the bundrary! sth error!\n" << std::endl;
     }else{
         int x = index % nx_;
         int y = index / nx_;

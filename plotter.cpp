@@ -87,7 +87,7 @@ QVector <posXY> plotter::astarPathToMapPath(robot *rob, AStar *astar){
     QVector <posXY> posArray;
     QTime time2;
     time2.start();
-    std::vector<std::pair<float, float>> path = astar->path;
+    std::vector<std::pair<float, float> > path = astar->path;
     qDebug()<<"find path :"<<time2.elapsed()<<"ms";
 
     int count = path.size();
