@@ -31,17 +31,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked(){
-    //std::cout << "xxx" << std::endl;
-    //printf("xxx ooo");
+//void MainWindow::on_pushButton_clicked(){
+//    //std::cout << "xxx" << std::endl;
+//    //printf("xxx ooo");
 
-    //    this->plot->drawCircle(num);
-    //    num++;
+//    //    this->plot->drawCircle(num);
+//    //    num++;
 
-    //this->plot->robot_step = 0;//sth wrong here
-}
+//    //this->plot->robot_step = 0;//sth wrong here
+//}
 
-void MainWindow::on_setARobot_clicked()
-{
+//void MainWindow::on_setARobot_clicked()
+//{
 
-}
+//}

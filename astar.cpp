@@ -1,9 +1,23 @@
 #include "astar.h"
 #include "iostream"
 
+QMutex AStar::mutex;
+AStar *AStar::astar_instance = NULL;
+
 AStar::AStar(QObject *parent) : QObject(parent)
 {
 
+}
+
+AStar *AStar::getInstance(){
+    if(astar_instance == NULL){
+        mutex.lock();
+        if(NULL == astar_instance){
+            astar_instance = new AStar(MAP_X, MAP_Y);
+        }
+        mutex.unlock();
+    }
+    return astar_instance;
 }
 
 AStar::AStar(int nx, int ny){

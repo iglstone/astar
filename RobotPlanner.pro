@@ -26,10 +26,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     plotter.cpp \
-    astar.cpp
+    astar.cpp \
+    Robot.cpp \
+    Parameters.cpp
 
 HEADERS  += mainwindow.h \
     plotter.h \
-    astar.h
+    astar.h \
+    Robot.h \
+    Parameters.h
 
 FORMS    += mainwindow.ui

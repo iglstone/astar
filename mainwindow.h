@@ -19,9 +19,9 @@ public:
 signals:
    void clicked();
 
-private slots:
-    void on_setARobot_clicked();
-    void on_pushButton_clicked();
+//private slots:
+//    void on_setARobot_clicked();
+//    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;

@@ -3,23 +3,23 @@
 #include <QtGlobal>
 #include <QDebug>
 #include <QTime>
+#include "Parameters.h"
 
 plotter::plotter(QWidget *parent) : QWidget(parent)
 {
-    this->XRows = 50;
-    this->YCols = 40;
-//    m_timer.start(500, this);
+    this->XRows = param.getXRows();
+    this->YCols = param.getYCols();
+
     m_timer.start(800, this);
     m_nStep = 0;
 
     margin = 35;//边缘
-    rect = QRect(margin, margin, width()-2*margin, height()-2*margin );//取得绘图区域，大小要减去旁白
+    rect = QRect(margin, margin, this->width()-2*margin, this->height()-2*margin );//取得绘图区域，大小要减去旁白
     xstep = (float)(rect.width())/ (this->XRows -1);
     ystep = (float)(rect.height())/ (this->YCols -1);
 
-    //simulate a robot move forward
-    rb.index_now = 12;
-    rb.forward = ForWord_Front;
+    rb.pose.index_now = 12;
+    rb.pose.forward= ForWord_Front;
 
     //path pen style
     pen.setStyle(Qt::DotLine);
@@ -27,6 +27,9 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     pen.setBrush(Qt::red);
 
     robot_step = 0;
+
+//    this->astar = new AStar(this->param.getXRows(), this->param.getYCols());
+    this->astar = AStar::getInstance();
 
     this->initRobotsStates();
 }
@@ -38,79 +41,22 @@ plotter::~plotter(){
 //test astar algrithm
 void plotter::initRobotsStates()
 {
-    astar = new AStar(this->getXRows(), this->getYCols());
-    astar->Four_Neighbor = false;//if true, four neighbors search
-
-    //move sequence: gray, yellow, green, red, blue
-    robot *ro = this->initARobot(1,1,25,29, QString("ro"), ROBOT_gray);
-    robotsArray.append(ro);
-
-    robot *ro2 = this->initARobot(3,15,25,17, QString("ro2"), ROBOT_yellow);
-    robotsArray.append(ro2);
-
-    robot *ro3 = this->initARobot(20,15,48,36, QString("ro3"), ROBOT_green);
-    robotsArray.append(ro3);
-
-    robot *ro4 = this->initARobot(25,30,31,30, QString("ro4"), ROBOT_red);
-    robotsArray.append(ro4);
-
-    robot *ro5 = this->initARobot(28,28,28,32, QString("ro5"), ROBOT_blue);
-    robotsArray.append(ro5);
-
-}
-
-robot * plotter::initARobot(int start_x, int start_y, int end_x, int end_y, QString name, int id){
-    robot *r = new robot;//if use ptr, must new one
-    int ind_start = this->xyToIndex(start_x,start_y);
-    int ind_end = this->xyToIndex(end_x,end_y);
-    r->index_start = ind_start;
-    r->index_end = ind_end;
-    r->robot_step = 0;
-    r->name = name;
-    r->robot_id = id;
-    QVector <posXY> paths = this->astarPathToMapPath(r,astar);
-    //rb_run.path = paths;
-    r->path.swap(paths);
-    return r;
-}
-
-QVector <posXY> plotter::astarPathToMapPath(robot *rob, AStar *astar){
-    posXY p0 = this->indexToPos(rob->index_start);
-    posXY p1 = this->indexToPos(rob->index_end);
-
-    QTime time;
-    time.start();
-    astar->startAStar(p0.x ,p0.y ,p1.x ,p1.y);
-    qDebug()<<"astar :"<<time.elapsed()<<"ms";
-
-    //find path
-    QVector <posXY> posArray;
-    QTime time2;
-    time2.start();
-    std::vector<std::pair<float, float> > path = astar->path;
-    qDebug()<<"find path :"<<time2.elapsed()<<"ms";
-
-    int count = path.size();
-    for (int i = count -1 ; i >= 0; i--)
-    {
-        std::pair<float, float> pa = path[i];
-        int x = pa.first ;
-        int y = pa.second ;
-        //std::cout << "path x:" << x << "  y:" << y << std::endl ;
-        posXY pos ;
-        pos.x = x ;
-        pos.y = y ;
-        posArray.append(pos) ;
-    }
-    return posArray;
+    Robot *r1 = new Robot(1,1,25,29, QString("ro"), ROBOT_gray);
+    robotsArray.append(r1);
+    Robot *r2 = new Robot(3,15,25,17, QString("ro2"), ROBOT_yellow);
+    robotsArray.append(r2);
+    Robot *r3 = new Robot(20,15,48,36, QString("ro3"), ROBOT_green);
+    robotsArray.append(r3);
+    Robot *r4 = new Robot(25,30,31,30, QString("ro4"), ROBOT_red);
+    robotsArray.append(r4);
+    Robot *r5 = new Robot(28,28,28,32, QString("ro5"), ROBOT_blue);
+    robotsArray.append(r5);
 }
 
 void plotter::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
-
     QPainter painter(this);
-
     drawGrid(&painter);
 }
 
@@ -139,7 +85,7 @@ void plotter::drawGrid(QPainter *painter)
 
     /* show astar path */
     for(int i = 0; i < robotsArray.count(); i++){
-        robot *robo = robotsArray[i];
+        Robot *robo = robotsArray[i];
 
         painter->setBrush(Qt::red);
         painter->setPen(pen);
@@ -187,13 +133,13 @@ void plotter::drawGrid(QPainter *painter)
 
 
             /*******add cross planner********/
-            int ind = this->posToIndex(pos);
-            robo->index_now = ind;
+            int ind = param.posToIndex(pos);
+            robo->pose.index_now = ind;
             //if next one is the final, stop; else point to the next one
             int tmp_next = (robo->robot_step + 1 >= posArray.count() -1) ? posArray.count() -1 : robo->robot_step + 1;
 
             posXY pos_next = posArray[tmp_next];
-            int ind_next = this->posToIndex(pos_next);
+            int ind_next = param.posToIndex(pos_next);
 
             if(robo->robot_step == posArray.count() -1){ //means stop
                 // circle from the start
@@ -217,6 +163,7 @@ void plotter::drawGrid(QPainter *painter)
         painter->setBrush(Qt::blue);
         painter->drawEllipse(30, 30, 10,10);
     }else{
+
     }
 
     /* show obstacles */
@@ -224,7 +171,7 @@ void plotter::drawGrid(QPainter *painter)
     painter->setPen(Qt::black);
     for(unsigned int i = 0; i < this->astar->obstacleIndexs.size(); i++){
         int index = this->astar->obstacleIndexs.at(i);
-        posXY pos = this->indexToPos(index);
+        posXY pos = this->param.indexToPos(index);
         int xx = 30 + pos.x * xstep ;
         int yy = 30 + pos.y * ystep ;
         painter->drawEllipse(xx, yy, 10,10);
@@ -235,26 +182,26 @@ void plotter::drawGrid(QPainter *painter)
     painter->setBrush(Qt::red);
     //examine map bundury
     bool bundery = false;
-    posXY pos = this->indexToPos(rb.index_now);
+    posXY pos = this->param.indexToPos(rb.pose.index_now);
     if(pos.x < 0){
         pos.x = 0;
         bundery = true;
     }
-    if(pos.x >= (this->getXRows() -1)){
-        pos.x = (this->getXRows() -1);
+    if(pos.x >= (this->param.getXRows() -1)){
+        pos.x = (this->param.getXRows() -1);
         bundery = true;
     }
     if(pos.y < 0){
         pos.y = 0;
         bundery = true;
     }
-    if(pos.y >= (this->getYCols() -1)){
-        pos.y = (this->getYCols() -1);
+    if(pos.y >= (this->param.getYCols() -1)){
+        pos.y = (this->param.getYCols() -1);
         bundery = true;
     }
 
-    int index = this->posToIndex(pos);
-    rb.index_now = index ;
+    int index = this->param.posToIndex(pos);
+    rb.pose.index_now = index ;
     int x = 30 + pos.x * xstep ;
     int y = 30 + pos.y * ystep ;
 
@@ -265,18 +212,18 @@ void plotter::drawGrid(QPainter *painter)
     }
 
     /* move the robot */
-    switch (rb.forward) {
+    switch (rb.pose.forward) {
         case ForWord_Front:
-            rb.index_now++;
+            rb.pose.index_now++;
             break;
         case ForWord_Back:
-            rb.index_now--;
+            rb.pose.index_now--;
             break;
         case ForWord_Down:
-            rb.index_now += this->getXRows();
+            rb.pose.index_now += this->param.getXRows();
             break;
         case ForWord_Up:
-            rb.index_now -= this->getXRows();
+            rb.pose.index_now -= this->param.getXRows();
             break;
         case ForWord_Self:
             std::cout << " get the goal" << std::endl;
@@ -301,44 +248,4 @@ void plotter::timerEvent(QTimerEvent *event)
     {
         QWidget::timerEvent(event);
     }
-}
-
-posXY plotter::indexToPos(int index){
-    posXY pos ;
-    if (index >= (this->getXRows() ) * (this->getYCols() ) || index < 0 ){
-        printf("index out of the bundrary! sth error!\n");
-    }else{
-        int x = index % (this->getXRows());
-        int y = index / this->getXRows();
-
-        pos.x = x;
-        pos.y = y;
-    }
-
-    return pos;
-}
-
-int plotter::xyToIndex(int x, int y){
-    int index = y * this-> getXRows() + x;
-    return index;
-}
-
-int plotter::posToIndex(posXY pos){
-    int x = pos.x;
-    int y = pos.y;
-    int index = this->xyToIndex(x,y);
-    return index;
-}
-
-int plotter::getXRows(){
-    return this->XRows ;
-}
-int plotter::getYCols(){
-    return this->YCols;
-}
-void plotter::setXRows(int row){
-    this->XRows = row;
-}
-void plotter::setYCols(int col){
-    this->YCols = col;
 }

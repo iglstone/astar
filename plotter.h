@@ -9,7 +9,9 @@
 #include <astar.h>
 #include <QString>
 
-enum ForWord{
+#include "Robot.h"
+/*
+enum ROBOT_ForWord{
     ForWord_Self    = 0,
     ForWord_Front   = 1,
     ForWord_Up      = 2,
@@ -18,7 +20,7 @@ enum ForWord{
     ForWord_Unknow  = 5
 };
 
-enum ROBOT{
+enum ROBOT_Color{
     ROBOT_black    = 0,
     ROBOT_yellow   = 1,
     ROBOT_gray     = 2,
@@ -37,6 +39,7 @@ struct robot{
     int robot_step;
     QVector <posXY> path; //astar planner path
 };
+*/
 
 class plotter : public QWidget
 {
@@ -44,40 +47,21 @@ class plotter : public QWidget
 public:
     explicit plotter(QWidget *parent = 0);
     ~plotter();
-
-    int getXRows();
-    int getYCols();
-    void setXRows(int row);
-    void setYCols(int col);
-
-    posXY indexToPos(int index);
-    int posToIndex(posXY pos);
-
     int robot_step;
 
 private:
     void paintEvent(QPaintEvent *event);
     void timerEvent(QTimerEvent *event);
     void drawGrid(QPainter *);
-    int xyToIndex(int x, int y);
+    //int xyToIndex(int x, int y);
     void initRobotsStates();
-    QVector <posXY> astarPathToMapPath(robot *rob, AStar *astar);
-    robot *initARobot(int start_x, int start_y, int end_x, int end_y, QString name, int id);
-
-    int XRows;
-    int YCols;
-
-    int forward;
-
-    robot rb ;
 
     //global
     QRect rect;
     int margin;
     float xstep;
     float ystep;
-    QVector <robot *> robotsArray;
-//    std::vector <robot *> robotsArray;
+    QVector <Robot *> robotsArray;
 
     AStar *astar;
     QPen pen;
@@ -85,6 +69,11 @@ private:
 private:
     QBasicTimer m_timer;
     int m_nStep;
+    int XRows;
+    int YCols;
+
+    Robot rb;
+    Parameters param;
 
 signals:
 

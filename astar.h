@@ -4,6 +4,9 @@
 #include <QObject>
 #include <vector>
 #include <algorithm>
+#include <QMutex>
+
+#include "Parameters.h"
 
 #define POT_HIGH 1.0e10        // unassigned cell potential
 
@@ -32,16 +35,12 @@ struct greater1 {
         }
 };
 
-struct posXY{
-    int x;
-    int y;
-};
-
 class AStar : public QObject
 {
     Q_OBJECT
 public:
     explicit AStar(QObject *parent = 0);
+    static AStar *getInstance();
     AStar(int nx, int ny);
     std::vector< std::pair<float, float> > path;
     bool Four_Neighbor; // if false, means 8-neighbor
@@ -75,6 +74,10 @@ private:
     unsigned char* costmap_;
 
     void setIndexsObstacles(std::vector<int> indexs);
+
+    static AStar *astar_instance;
+    static QMutex mutex;
+    Parameters param;
 
 };
 
