@@ -11,15 +11,11 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     this->YCols = param.getYCols();
 
     m_timer.start(800, this);
-    m_nStep = 0;
 
     margin = 35;//边缘
     rect = QRect(margin, margin, this->width()-2*margin, this->height()-2*margin );//取得绘图区域，大小要减去旁白
     xstep = (float)(rect.width())/ (this->XRows -1);
     ystep = (float)(rect.height())/ (this->YCols -1);
-
-    rb.pose.index_now = 12;
-    rb.pose.forward= ForWord_Front;
 
     //path pen style
     pen.setStyle(Qt::DotLine);
@@ -27,6 +23,7 @@ plotter::plotter(QWidget *parent) : QWidget(parent)
     pen.setBrush(Qt::red);
 
     robot_step = 0;
+    painter_times = false;
 
 //    this->astar = new AStar(this->param.getXRows(), this->param.getYCols());
     this->astar = AStar::getInstance();
@@ -53,43 +50,27 @@ void plotter::initRobotsStates()
     robotsArray.append(r5);
 }
 
+//when use update, will call this fuction
 void plotter::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
-    drawGrid(&painter);
+    painter.setPen(Qt::black);
+    drawAction(&painter);
 }
 
-void plotter::drawGrid(QPainter *painter)
+void plotter::drawAction(QPainter *painter)
 {
-    painter->setPen(Qt::black);
+    drawMap(painter);
 
-    //if need dynamic , which will uncomment lines belows
-    rect = QRect(margin, margin, width()-2*margin, height()-2*margin );
-    xstep = (float)(rect.width())/ (this->XRows -1);
-    ystep = (float)(rect.height())/ (this->YCols -1);
-
-    /* draw x line */
-    for(int i=0; i<this->XRows; i++)
-    {
-        int x = margin + i*xstep;
-        painter->drawLine(x,rect.top(),x,rect.bottom());
-    }
-
-    /* draw y line */
-    for(int j=0; j<this->YCols; j++)
-    {
-        int y = margin+(j*ystep);
-        painter->drawLine(margin,y,rect.right(),y);
-    }
-
-    /* show astar path */
+    //draw robot position and planned path.
     for(int i = 0; i < robotsArray.count(); i++){
         Robot *robo = robotsArray[i];
 
         painter->setBrush(Qt::red);
         painter->setPen(pen);
 
+        //draw robot planer path
         QVector <posXY> posArray = robo->path;
         for (int i = 0; i < posArray.count() -1; i++)
         {
@@ -102,7 +83,7 @@ void plotter::drawGrid(QPainter *painter)
             painter->drawLine(x0, y0, x1, y1) ;
         }
 
-        /* show the robot move */
+        //draw robots pos by pos(x,y)
         if(robo->robot_step < posArray.count()){
             //std::cout << "robot_step :" << robo->robot_step << std::endl;
             posXY pos = posArray[robo->robot_step];
@@ -126,10 +107,10 @@ void plotter::drawGrid(QPainter *painter)
                 painter->setBrush(Qt::black);
                 break;
             }
-            painter->setPen(Qt::black);
+            painter->setPen(Qt::black) ;
             float x0 = 30 + pos.x * xstep ;
             float y0= 30 + pos.y * ystep ;
-            painter->drawEllipse(x0, y0, 10,10);
+            painter->drawEllipse(x0, y0, 10,10) ;
 
 
             /*******add cross planner********/
@@ -147,26 +128,41 @@ void plotter::drawGrid(QPainter *painter)
             }else{
                 //means start to move
                 if(astar->isIndexObstacle(ind_next)){
-                    //do nothing
+                    //do nothing, not to go to next step
                 }else{
                     robo->robot_step ++;
                 }
             }
+
             astar->setIndexObstacle(ind_next);
             astar->setIndexNormal(ind);//free the space
         }
     }
 
-    //show the blink robot on 0.0
-    int nIndex = (m_nStep) % 2;
-    if(nIndex){
-        painter->setBrush(Qt::blue);
-        painter->drawEllipse(30, 30, 10,10);
-    }else{
+}
 
+void plotter::drawMap(QPainter *painter)
+{
+    //if need dynamic , which will uncomment lines belows
+    rect = QRect(margin, margin, width()-2*margin, height()-2*margin );
+    xstep = (float)(rect.width())/ (this->XRows -1);
+    ystep = (float)(rect.height())/ (this->YCols -1);
+
+    /* draw x line */
+    for(int i=0; i<this->XRows; i++)
+    {
+        int x = margin + i*xstep;
+        painter->drawLine(x,rect.top(),x,rect.bottom());
     }
 
-    /* show obstacles */
+    /* draw y line */
+    for(int j=0; j<this->YCols; j++)
+    {
+        int y = margin+(j*ystep);
+        painter->drawLine(margin,y,rect.right(),y);
+    }
+
+    // show obstacles
     painter->setBrush(Qt::gray);
     painter->setPen(Qt::black);
     for(unsigned int i = 0; i < this->astar->obstacleIndexs.size(); i++){
@@ -177,62 +173,7 @@ void plotter::drawGrid(QPainter *painter)
         painter->drawEllipse(xx, yy, 10,10);
     }
 
-
-    /* show the right forward blink robot */
-    painter->setBrush(Qt::red);
-    //examine map bundury
-    bool bundery = false;
-    posXY pos = this->param.indexToPos(rb.pose.index_now);
-    if(pos.x < 0){
-        pos.x = 0;
-        bundery = true;
-    }
-    if(pos.x >= (this->param.getXRows() -1)){
-        pos.x = (this->param.getXRows() -1);
-        bundery = true;
-    }
-    if(pos.y < 0){
-        pos.y = 0;
-        bundery = true;
-    }
-    if(pos.y >= (this->param.getYCols() -1)){
-        pos.y = (this->param.getYCols() -1);
-        bundery = true;
-    }
-
-    int index = this->param.posToIndex(pos);
-    rb.pose.index_now = index ;
-    int x = 30 + pos.x * xstep ;
-    int y = 30 + pos.y * ystep ;
-
-    painter->drawEllipse(x, y, 10,10);
-
-    if(bundery){
-        return;
-    }
-
-    /* move the robot */
-    switch (rb.pose.forward) {
-        case ForWord_Front:
-            rb.pose.index_now++;
-            break;
-        case ForWord_Back:
-            rb.pose.index_now--;
-            break;
-        case ForWord_Down:
-            rb.pose.index_now += this->param.getXRows();
-            break;
-        case ForWord_Up:
-            rb.pose.index_now -= this->param.getXRows();
-            break;
-        case ForWord_Self:
-            std::cout << " get the goal" << std::endl;
-            break;
-        default:
-            break;
-    }
-
-
+    painter_times ++;
 }
 
 void plotter::timerEvent(QTimerEvent *event)
@@ -241,7 +182,6 @@ void plotter::timerEvent(QTimerEvent *event)
 
     if (event->timerId() == m_timer.timerId())
     {
-        ++m_nStep;
         update();
     }
     else
