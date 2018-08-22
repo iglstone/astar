@@ -24,12 +24,14 @@ private:
     void timerEvent(QTimerEvent *event);
     void drawAction(QPainter *painter);
     void drawMap(QPainter *painter);
+    void drawRobotAndPath(Robot *robo, QPainter *painter);
     //int xyToIndex(int x, int y);
     void initRobotsStates();
 
     //global
     QRect rect;
     int margin;
+    int robot_radius;
     float xstep;
     float ystep;
     QVector <Robot *> robotsArray;
@@ -42,6 +44,7 @@ private:
     int XRows;
     int YCols;
     int painter_times;
+//    QPainter painter;
 
     Parameters param;
 

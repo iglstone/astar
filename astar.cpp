@@ -20,8 +20,8 @@ AStar *AStar::getInstance(){
     return astar_instance;
 }
 
-AStar::AStar(int nx, int ny){
-
+AStar::AStar(int nx, int ny)
+{
     std::cout << "..init astar.." << std::endl;
 
     nx_ = nx;
@@ -98,7 +98,7 @@ void AStar::startAStar(int start_x, int start_y, int goal_x, int goal_y){
     bool found_legal = this->calculatePotentials(costmap_, start_x, start_y,
                                                  goal_x, goal_y, nx_ * ny_ * 2, potential_array_);
     if (found_legal){
-        std::cout << "found the path" << std::endl;
+        std::cout << "found path" << std::endl;
         this->getPath(potential_array_, start_x, start_y, goal_x, goal_y, path);
     }
 }
